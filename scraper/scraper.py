@@ -10,6 +10,7 @@ import pandas as pd
 
 # Function to scrape SimilarWeb and click a button
 def scrape_similarweb(website: str, driver: webdriver.Chrome):
+    #Initializing variables to handle errors in the scraping
     description = ""
     total_visits = ""
     visits_change = ""
@@ -29,9 +30,6 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
     similar_web_dict = ""
 
     driver.get(f"https://pro.similarweb.com/#/activation/home/")
-    
-    # Wait for the page to load
-    time.sleep(4)
 
     try:
         # Wait for the button to be clickable (you can use WebDriverWait for better practice)
@@ -50,6 +48,7 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
         print(f"Failed to click on configurations for {website}: {str(e)}")
 
     try:
+        #removing old website from the input
         company_name_div = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//div[@class="sc-BngTV sc-jUpvKA jckYwz fake-input--content"]'))
         )
         company_name_div.click()
@@ -57,7 +56,7 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
         print(f"Failed to remove old website name for {website}: {str(e)}")
 
     try:
-        #company_name_text = driver.find_element(By.XPATH, '//div[@class="sc-jtRlXQ Mimor AutocompleteStyled-eKSDhW dFkOWL AutocompleteWebsitesBase autoCompletePrimaryDomain"]//input')
+        #adding the new website in the input
         company_name_text = driver.find_element(By.XPATH, '//div[starts-with(@class, "sc-jtRlXQ Mimor AutocompleteStyled")]//input')
         company_name_text.send_keys(website)
         time.sleep(1)
@@ -66,6 +65,7 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
         print(f"Failed to write new website name for {website}: {str(e)}")
 
     try:
+        #Click on the input so that the new name stays
         company_name_select = driver.find_element(By.XPATH, '//div[@class="sc-kjoXOD iiqbAx ItemText"]')
         company_name_select.click()
         time.sleep(1)
@@ -74,6 +74,7 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
         print(f"Failed to click on the website name so it can be saved for {website}: {str(e)}")
 
     try:
+        #Click on save changes button
         save_changes_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@class="sc-hqyNC sc-uJMKN flxlYJ Button"]'))
         )
         driver.execute_script("arguments[0].click();", save_changes_button)
@@ -84,6 +85,7 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
 
 
     try:
+        #go to performance pag
         driver.get(f"https://pro.similarweb.com/#/digitalsuite/websiteanalysis/overview/website-performance/*/999/3m?webSource=Total&key={website}")
     except Exception as e:
         print(f"Failed to go to performance page for {website}: {str(e)}")
@@ -100,11 +102,8 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
 
         try:
             device_distribution_child = parent_div.find_elements(By.XPATH, './/div[@class="highcharts-legend highcharts-no-tooltip"]')
-            #device_distribution_text = []
             for parent in device_distribution_child:
                 children = parent.find_elements(By.XPATH, './/div[@class="BaseFlex-bGFvgJ FlexRow-dhmstB gUmaNS"]')  # Finds only direct child divs
-                #if len(children) >= 2:  # Ensure at least 2 divs exist
-                #    device_distribution_text.append([children[0].text.strip(), children[1].text.strip()])
                 device_distribution_text = [child.text.strip() for child in children]
             try:
                 device_distribution_dict = {
@@ -189,7 +188,7 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
         print(f"Failed to extract source traffic for {website}: {str(e)}")
 
     try:
-        #Similar websites
+        # Go to Similar sites page
         driver.get(f"https://pro.similarweb.com/#/digitalsuite/websiteanalysis/overview/competitive-landscape/*/999/3m?key={website}")
         wait = WebDriverWait(driver, 10)
 
@@ -232,7 +231,7 @@ def scrape_similarweb(website: str, driver: webdriver.Chrome):
     except Exception as e:
         print(f"Failed to extract similar websites for {website}: {str(e)}")
 
-
+#Create a dictionary with all the collected data
     website_data = {
         "website": website,
         "description":description,
